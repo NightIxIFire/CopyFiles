@@ -79,14 +79,20 @@ function CopyProgressFuncSize( TotalFileSize: Int64;
                                end;
 
 procedure TCopyThread.Execute;
-var i:integer;
+var i,lastsec:integer;
 begin
-TimeCopy:=0;
-bCancelCopy := False;
+
+  bCancelCopy := False;
+
+  Copy.IBQ1.Close;
+  Copy.IBQ1.SQL.Clear;
+  Copy.IBQ1.SQL.Text:='Delete from files';
+  Copy.IBQ1.ExecSQL;
+  Copy.IBTransaction1.Commit;
 
 for i:=0 to CopyFiles.OpenDialog.Files.Count-1 do
 Begin
-
+  lastsec:=strtoint(Copy.Label4.Caption);
   CopyProgressFuncCount(i+1,CopyFiles.OpenDialog.Files.Count);
   Copy.Label5.Caption:=extractfilename(CopyFiles.OpenDialog.Files[i]);
   if CopyFileEx(PAnsiChar(CopyFiles.OpenDialog.Files[i]), PAnsiChar(CopyFiles.SelectDirectory.Directory+'\'+extractfilename(CopyFiles.OpenDialog.Files[i])), Addr(CopyProgressFuncSize),
@@ -94,12 +100,12 @@ Begin
   then
     MessageBox(Handle, 'Не получилось!', 'Копирование', MB_ICONEXCLAMATION);
 
+    Copy.IBQ1.Close;
     Copy.IBQ1.SQL.Clear;
-    Copy.IBQ1.SQL.Add('Insert into files (name, sizefile, timecopy) values ('''+Copy.Label5.Caption+''','''+Copy.Label6.Caption+''','''+Copy.Label4.Caption+''')');
-    Copy.IBQ1.Transaction.StartTransaction;
+    Copy.IBQ1.SQL.Add('Insert into files (name, sizefile, timecopy) values ('''+Copy.Label5.Caption+''','''+Copy.Label6.Caption+''','''+inttostr(strtoint(Copy.Label4.Caption)-lastsec)+''')');
     Copy.IBQ1.ExecSQL;
-    Copy.IBQ1.Transaction.Commit;
-    Copy.IBQ1.Transaction.Active := false;
+    Copy.IBTable1.Active:=False;
+    Copy.IBTable1.Active:=True;
 
   if CopyThread.Terminated then
     Begin
@@ -107,18 +113,21 @@ Begin
       break;
     end;
 end;
+Copy.Timer1.Enabled:=False;
 MessageBox(Handle, 'Все операции завершены!', 'Копирование', MB_ICONASTERISK);
 end;
 
 procedure TCopy.FormActivate(Sender: TObject);
 begin
+Timer1.Enabled:=True;
+TimeCopy:=0;
 CopyThread:=TCopyThread.Create(False);
 end;
 
 procedure TCopy.Timer1Timer(Sender: TObject);
 begin
 TimeCopy:=TimeCopy+1;
-Label4.Caption:=inttostr(TimeCopy)+' секунд';
+Label4.Caption:=inttostr(TimeCopy div 100);
 end;
 
 procedure TCopy.Button1Click(Sender: TObject);

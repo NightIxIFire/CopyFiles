@@ -1,6 +1,6 @@
 object Copy: TCopy
-  Left = 302
-  Top = 178
+  Left = 266
+  Top = 184
   Width = 758
   Height = 193
   Caption = 'Copy'
@@ -39,9 +39,9 @@ object Copy: TCopy
   object Label4: TLabel
     Left = 112
     Top = 32
-    Width = 32
+    Width = 6
     Height = 13
-    Caption = 'Label4'
+    Caption = '0'
   end
   object Label5: TLabel
     Left = 72
@@ -119,13 +119,14 @@ object Copy: TCopy
       end>
   end
   object Timer1: TTimer
+    Interval = 10
     OnTimer = Timer1Timer
     Left = 208
     Top = 80
   end
   object IBDatabase1: TIBDatabase
     Connected = True
-    DatabaseName = 'D:\CopyFiles\DB.FBD'
+    DatabaseName = 'DB.FBD'
     Params.Strings = (
       'user_name=SYSDBA'
       'password=masterkey')
@@ -137,7 +138,6 @@ object Copy: TCopy
   object IBTable1: TIBTable
     Database = IBDatabase1
     Transaction = IBTransaction1
-    ForcedRefresh = True
     Active = True
     BufferChunks = 1000
     CachedUpdates = False
